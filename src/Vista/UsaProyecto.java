@@ -5,13 +5,21 @@
 package Vista;
 
 import Modelo.Cliente;
+import Modelo.Contacto;
 import Modelo.Empleado;
+import Modelo.Empresa;
+import Modelo.PersonaNatural;
 import Modelo.Proyecto;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import static javax.swing.JOptionPane.showInputDialog;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 /**
@@ -19,12 +27,10 @@ import javax.swing.JTextArea;
  * @author juanf
  */
 public class UsaProyecto extends javax.swing.JFrame {
-    
-         
-    private ArrayList<Proyecto> losProyectos = new ArrayList<>();
-    private ArrayList<Cliente>  losClientes = new ArrayList<>();
-    
-    
+
+    private static ArrayList<Proyecto> losProyectos = new ArrayList<>();
+    private static ArrayList<Cliente> losClientes = new ArrayList<>();
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(UsaProyecto.class.getName());
 
     /**
@@ -34,7 +40,6 @@ public class UsaProyecto extends javax.swing.JFrame {
         initComponents();
     }
 
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -158,7 +163,98 @@ public class UsaProyecto extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextField1ActionPerformed
 
     private void botonaceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonaceptarActionPerformed
-        // TODO add your handling code here:
+        String opcion = botonopcion.getSelectedItem().toString();
+
+        if (opcion.equals("Ninguno") && menu.getSelectedIndex() != -1) {
+            opcion = String.valueOf(menu.getSelectedIndex() + 1);
+        }
+
+        switch (opcion) {
+            case "1":
+                char agregarOtro;
+                do {
+                    losProyectos = registrarProyecto(losProyectos);
+                    agregarOtro = JOptionPane.showInputDialog("¿Desea agregar otro proyecto? (S/N)").toUpperCase().charAt(0);
+                } while (agregarOtro != 'N');
+                break;
+
+            case "2":
+                mostrarMensaje(consultarTodosProyectos(losProyectos));
+                break;
+
+            case "3":
+                mostrarMensaje(consultarProyectosEnCurso(losProyectos));
+                break;
+
+            case "4":
+                mostrarMensaje(consultarPrimerProyecto(losProyectos));
+                break;
+
+            case "5":
+                mostrarMensaje(consultarUltimoProyecto(losProyectos));
+                break;
+
+            case "6":
+                String cod6 = JOptionPane.showInputDialog("Ingrese el código del proyecto:");
+                mostrarMensaje(consultarGerenteProyectoDadoCodigo(losProyectos, cod6));
+                break;
+
+            case "7":
+                String cod7 = JOptionPane.showInputDialog("Ingrese el código del proyecto:");
+                mostrarMensaje(consultarEquipoProyectoDadoCodigo(losProyectos, cod7));
+                break;
+
+            case "8":
+                String idGerente = JOptionPane.showInputDialog("Ingrese el número de identificación del gerente:");
+                mostrarMensaje(consultarProyectosDadoNumIDEGerente(losProyectos, idGerente));
+                break;
+
+            case "9":
+                String idCliente = JOptionPane.showInputDialog("Ingrese el número de identificación del cliente:");
+                mostrarMensaje(consultarProyectosDadoNumIDECliente(losProyectos, idCliente));
+                break;
+
+            case "10":
+                String cod10 = JOptionPane.showInputDialog("Ingrese el código del proyecto:");
+                JOptionPane.showMessageDialog(null, registrarIntegranteProyectoDadoCodigo(losProyectos, cod10));
+                break;
+
+            case "11":
+                String cod11 = JOptionPane.showInputDialog("Ingrese el código del proyecto:");
+                JOptionPane.showMessageDialog(null, registrarEquipoProyectoDadoCodigo(losProyectos, cod11));
+                break;
+
+            case "12":
+                String cod12 = JOptionPane.showInputDialog("Ingrese el código del proyecto:");
+                JOptionPane.showMessageDialog(null, eliminarIntegranteProyectoDadoCodigo(losProyectos, cod12));
+                break;
+
+            case "13":
+                generarArchivoDeObjetosProyectos(losProyectos);
+                break;
+
+            case "14":
+                generarArchivoDeObjetosClientes(losProyectos);
+                break;
+
+            case "15":
+                losProyectos = leerArchivoDeObjetosProyectos();
+                mostrarMensaje(consultarTodosProyectos(losProyectos));
+                break;
+
+            case "16":
+                losClientes = leerArchivoDeObjetosClientes();
+                String resClientes = "=== CLIENTES LEÍDOS ===\n\n";
+                for (int i = 0; i < losClientes.size(); i++) {
+                    resClientes += losClientes.get(i).toString() + "\n";
+                }
+                mostrarMensaje(resClientes);
+                break;
+
+            default:
+                JOptionPane.showMessageDialog(null, "Seleccione una opción válida.");
+                break;
+        }
     }//GEN-LAST:event_botonaceptarActionPerformed
 
     private void BotonSalir(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BotonSalir
@@ -169,86 +265,410 @@ public class UsaProyecto extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-    java.awt.EventQueue.invokeLater(() -> {
-        new UsaProyecto().setVisible(true);
-    });
-}  
-    {
-      char agregarOtro;
-      do{
-          
-        losProyectos = registrarProyecto(losProyectos);
-        agregarOtro = JOptionPane.showInputDialog("¿Desea agregar otro proyecto? (S/N)").toUpperCase().charAt(0);          
-      }while(agregarOtro!='N');
+        java.awt.EventQueue.invokeLater(() -> {
+            new UsaProyecto().setVisible(true);
+        });
     }
-    
-    public ArrayList<Proyecto> registrarProyecto(ArrayList<Proyecto> losProyectos){
-        return losProyectos;
+
+    // Método sencillo para mostrar textos largos con barra de desplazamiento
+    public void mostrarMensaje(String texto) {
+        JTextArea area = new JTextArea(texto, 18, 45);
+        area.setEditable(false);
+        JOptionPane.showMessageDialog(null, new JScrollPane(area));
     }
-    
-    public String consultarTodosProyectos(ArrayList<Proyecto> losProyectos){
-        String resultado = "Consulta de \n";
-        for(int i=0; i<losProyectos.size(); i ++){
-        
+
+    // 1. Generar código automático (ej. 2026-001)
+    public String generarCodigoProyecto(ArrayList<Proyecto> datos) {
+        int anio = LocalDate.now().getYear();
+        int consecutivo = 1;
+        for (int i = 0; i < datos.size(); i++) {
+            if (datos.get(i).getCodigo().startsWith(anio + "-")) {
+                consecutivo++;
+            }
         }
-        return resultado;
+        return String.format("%d-%03d", anio, consecutivo);
     }
-    
-    public String consultarProyectosEnCurso(ArrayList<Proyecto> losProyectos, String proyectosEnCurso){
-        String resultado = "Consulta de \n";
-        for(int i=0; i<losProyectos.size(); i++){
-        
+
+    // 2. Registrar un proyecto
+    public ArrayList<Proyecto> registrarProyecto(ArrayList<Proyecto> datos) {
+        String codigo = generarCodigoProyecto(datos);
+        JOptionPane.showMessageDialog(null, "El código generado para el proyecto es: " + codigo);
+
+        String titulo;
+        do {
+            titulo = JOptionPane.showInputDialog("Ingrese el título del proyecto (entre 20 y 100 caracteres):");
+            if (titulo == null || titulo.isBlank() || titulo.length() < 20 || titulo.length() > 100) {
+                JOptionPane.showMessageDialog(null, "Entrada inválida: el título debe tener entre 20 y 100 caracteres.", "Registrar proyecto: título", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (titulo == null || titulo.isBlank() || titulo.length() < 20 || titulo.length() > 100);
+
+        LocalDate fechaInicio = null;
+        do {
+            try {
+                String fechaTexto = JOptionPane.showInputDialog("Fecha de inicio (Formato: aaaa-mm-dd):");
+                fechaInicio = LocalDate.parse(fechaTexto);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Fecha inválida. Use el formato aaaa-mm-dd.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (fechaInicio == null);
+
+        String unidadDuracion;
+        do {
+            unidadDuracion = JOptionPane.showInputDialog("Unidad de duración (semanas, meses, años):").toLowerCase();
+            if (!unidadDuracion.equals("semanas") && !unidadDuracion.equals("meses") && !unidadDuracion.equals("años")) {
+                JOptionPane.showMessageDialog(null, "Solo se permite: semanas, meses o años.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (!unidadDuracion.equals("semanas") && !unidadDuracion.equals("meses") && !unidadDuracion.equals("años"));
+
+        byte duracionEstimada = 0;
+        boolean duracionOk = false;
+        do {
+            duracionEstimada = Byte.parseByte(JOptionPane.showInputDialog("Duración estimada en " + unidadDuracion + ":"));
+            if ((unidadDuracion.equals("semanas") || unidadDuracion.equals("años")) && duracionEstimada >= 1 && duracionEstimada <= 3) {
+                duracionOk = true;
+            } else if (unidadDuracion.equals("meses") && ((duracionEstimada >= 1 && duracionEstimada <= 11) || (duracionEstimada >= 13 && duracionEstimada <= 23) || (duracionEstimada >= 25 && duracionEstimada <= 35))) {
+                duracionOk = true;
+            } else {
+                JOptionPane.showMessageDialog(null, "Duración fuera de rango (semanas/años: 1-3; meses: 1-11, 13-23, 25-35).", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (!duracionOk);
+
+        // Datos del Cliente
+        String tipoCliente = JOptionPane.showInputDialog("Tipo de cliente (1 = Empresa, 2 = PersonaNatural):");
+        String idCliente = JOptionPane.showInputDialog("Identificación del cliente:");
+        String nomCliente = JOptionPane.showInputDialog("Nombre del cliente:");
+        String ciudadCliente = JOptionPane.showInputDialog("Ciudad del cliente:");
+        Cliente suCliente;
+
+        if (tipoCliente.equals("1")) {
+            String nomCont = JOptionPane.showInputDialog("Nombre completo del contacto:");
+            String cargoCont = JOptionPane.showInputDialog("Cargo del contacto:");
+            String telCont = JOptionPane.showInputDialog("Teléfono del contacto:");
+            String emailCont = JOptionPane.showInputDialog("Correo electrónico del contacto:");
+            Contacto contacto = new Contacto(nomCont, cargoCont, telCont, emailCont);
+            suCliente = new Empresa(contacto, idCliente, nomCliente, ciudadCliente);
+        } else {
+            String telPer = JOptionPane.showInputDialog("Teléfono de la persona natural:");
+            String emailPer = JOptionPane.showInputDialog("Correo electrónico de la persona natural:");
+            suCliente = new PersonaNatural(telPer, emailPer, idCliente, nomCliente, ciudadCliente);
         }
-        return resultado;
+
+        // Datos del Gerente
+        String idGer = JOptionPane.showInputDialog("Identificación del gerente:");
+        String nomGer = JOptionPane.showInputDialog("Nombre completo del gerente:");
+        String titGer = JOptionPane.showInputDialog("Título profesional del gerente:");
+        byte expGer = Byte.parseByte(JOptionPane.showInputDialog("Años de experiencia del gerente:"));
+        Empleado suGerente = new Empleado(idGer, nomGer, titGer, expGer);
+
+        // Equipo inicial (opcional)
+        ArrayList<Empleado> suEquipo = new ArrayList<>();
+        char agregarEquipo = JOptionPane.showInputDialog("¿Desea agregar integrantes al equipo ahora? (S/N)").toUpperCase().charAt(0);
+        while (agregarEquipo == 'S') {
+            String idEmp = JOptionPane.showInputDialog("Identificación del integrante:");
+            String nomEmp = JOptionPane.showInputDialog("Nombre completo del integrante:");
+            String titEmp = JOptionPane.showInputDialog("Título profesional del integrante:");
+            byte expEmp = Byte.parseByte(JOptionPane.showInputDialog("Años de experiencia del integrante:"));
+            suEquipo.add(new Empleado(idEmp, nomEmp, titEmp, expEmp));
+            agregarEquipo = JOptionPane.showInputDialog("¿Desea agregar otro integrante? (S/N)").toUpperCase().charAt(0);
+        }
+
+        // Estado por defecto
+        String estado = JOptionPane.showInputDialog("Estado del proyecto (INICIADO, EN CURSO, CANCELADO, FINALIZADO, SUSPENDIDO, APLAZADO):", "INICIADO").toUpperCase();
+
+        Proyecto nuevo = new Proyecto(codigo, titulo, fechaInicio, unidadDuracion, duracionEstimada, suCliente, suGerente, suEquipo, estado);
+        datos.add(nuevo);
+        JOptionPane.showMessageDialog(null, "Proyecto registrado con éxito.");
+        return datos;
     }
-    
-      
-    public String consultarTodosProyectos(ArrayList<Proyecto> losProyectos);{
-    
-}
-    String codigo;
-    String titulo;
-    LocalDate fechaInicio;
-    String unidadDuracion;
-    byte duracionEstimada;
-    Cliente suCliente;
-    Empleado suGerente;
-    ArrayList<Empleado> suEquipo;
-    String estado;
-    
-    do {
-        codigo = JOptionPane.showInputDialog(" 8 dígitos: año seguido de un guión y un consecutivo que inicia en 1 cada año, obligatorio");
-        if (codigo.isBlank() || codigo.isEmpty() || codigo.length()<8){
-            JOptionPane.showMessageDialog(null, "Entrada inválida: el dato no cumple con lo necesario.\n",  "Reegistrar proyecto: código", JOptionPane.ERROR_MESSAGE);
-        }    
-    } while (codigo.isBlank() || codigo.isEmpty() || codigo.length()<8);
-    
-    do {
-        titulo = JOptionPane.showInputDialog("Cadena entre 20 y 100 caracteres.");
-        if (titulo.isBlank() || titulo.isEmpty() || titulo.length()<20 || titulo.length()>100){
-            JOptionPane.showMessageDialog(null, "Entrada inválida: el dato no cumple con lo necesario.\n", "Reegistrar proyecto: titulo", JOptionPane.ERROR_MESSAGE);
+
+    // Método de apoyo para mostrar los datos de un proyecto
+    public String mostrarProyecto(Proyecto p) {
+        return "Código: " + p.getCodigo() + "\n"
+                + "Título: " + p.getTitulo() + "\n"
+                + "Fecha inicio: " + p.getFechaInicio() + "\n"
+                + "Duración: " + p.getDuracionEstimada() + " " + p.getUnidadDuracion() + "\n"
+                + "Fecha finalización: " + p.determinarFechaFinalizacion() + "\n"
+                + "Estado: " + p.getEstado() + "\n"
+                + "Cliente: " + p.getSuCliente() + "\n"
+                + "Gerente: " + p.getSuGerente() + "\n"
+                + "Equipo: " + p.getSuEquipo() + "\n"
+                + "----------------------------------------\n";
+    }
+
+    public String consultarTodosProyectos(ArrayList<Proyecto> datos) {
+        if (!datos.isEmpty()) {
+            String resultado = "=== LISTADO DE PROYECTOS ===\n\n";
+            for (int i = 0; i < datos.size(); i++) {
+                resultado += mostrarProyecto(datos.get(i));
+            }
+            return resultado;
         }
-    } while (titulo.isBlank() || titulo.isEmpty() || titulo.length()<20 || titulo.length()>100);
-    
-    do {
-        fechaInicio = LocalDate.parse(JOptionPane.showInputDialog("Formato: aaaa-mm-dd,"));
-    
-    
-    private String consultarTodosProyectos(ArrayList<Proyecto> losProyectos){
-        if (datos != null && !datos.isEmpty()) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== LISTADO DE PROYECTOS REGISTRADOS ===\n\n");
-        for (Proyecto p : datos) {
-            sb.append("Código: ").append(p.getCodigo()).append("\n");
-            sb.append("Título: ").append(p.getTitulo()).append("\n");
-            sb.append("Fecha de inicio: ").append(p.getFechaInicio()).append("\n");
-            sb.append("Duración estimada: ").append(p.getDuracionEstimada())
-              .append(" ").append(p.getUnidadDuracion()).append("\n");
-            sb.append("Fecha de finalización: ").append(p.determinarFechaFinalizacion()).append("\n");
-            sb.append("Estado: ").append(p.getEstado()).append("\n");
-            sb.append("Cliente: ").append(p.getSuCliente()).append("\n");
-            sb.append("Gerente: ").append(p.getSuGerente()).append("\n");
-               
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarProyectosEnCurso(ArrayList<Proyecto> datos) {
+        if (!datos.isEmpty()) {
+            String resultado = "=== PROYECTOS EN CURSO ===\n\n";
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getEstado().equalsIgnoreCase("EN CURSO")) {
+                    resultado += mostrarProyecto(datos.get(i));
+                }
+            }
+            return resultado;
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarPrimerProyecto(ArrayList<Proyecto> datos) {
+        if (!datos.isEmpty()) {
+            return "=== PRIMER PROYECTO ===\n\n" + mostrarProyecto(datos.get(0));
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarUltimoProyecto(ArrayList<Proyecto> datos) {
+        if (!datos.isEmpty()) {
+            return "=== ÚLTIMO PROYECTO ===\n\n" + mostrarProyecto(datos.get(datos.size() - 1));
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    return mostrarProyecto(datos.get(i));
+                }
+            }
+            return "No existe un proyecto con ese código.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarGerenteProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                Proyecto p = datos.get(i);
+                if (p.getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    return "Proyecto: " + p.getTitulo() + "\nGerente: " + p.getSuGerente();
+                }
+            }
+            return "No se encontró el proyecto.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarEquipoProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                Proyecto p = datos.get(i);
+                if (p.getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    String res = "Proyecto: " + p.getTitulo() + "\nEquipo:\n";
+                    for (int j = 0; j < p.getSuEquipo().size(); j++) {
+                        res += "- " + p.getSuEquipo().get(j) + "\n";
+                    }
+                    return res;
+                }
+            }
+            return "No se encontró el proyecto.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String registrarIntegranteProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    String id = JOptionPane.showInputDialog("Identificación del integrante:");
+                    String nom = JOptionPane.showInputDialog("Nombre completo:");
+                    String tit = JOptionPane.showInputDialog("Título profesional:");
+                    byte exp = Byte.parseByte(JOptionPane.showInputDialog("Años de experiencia:"));
+                    datos.get(i).agregarIntegrante(new Empleado(id, nom, tit, exp));
+                    return "Integrante agregado correctamente.";
+                }
+            }
+            return "No se encontró el proyecto.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String registrarEquipoProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    int cant = Integer.parseInt(JOptionPane.showInputDialog("Cantidad de integrantes a registrar:"));
+                    ArrayList<Empleado> equipo = new ArrayList<>();
+                    int cont = 0;
+                    char otro;
+                    do {
+                        String id = JOptionPane.showInputDialog("Identificación del integrante:");
+                        String nom = JOptionPane.showInputDialog("Nombre completo:");
+                        String tit = JOptionPane.showInputDialog("Título profesional:");
+                        byte exp = Byte.parseByte(JOptionPane.showInputDialog("Años de experiencia:"));
+                        equipo.add(new Empleado(id, nom, tit, exp));
+                        cont++;
+                        if (cont < cant) {
+                            otro = 'S';
+                        } else {
+                            otro = JOptionPane.showInputDialog("¿Desea agregar otro integrante más? (S/N)").toUpperCase().charAt(0);
+                        }
+                    } while (otro == 'S');
+                    datos.get(i).setSuEquipo(equipo);
+                    return "Equipo registrado correctamente.";
+                }
+            }
+            return "No se encontró el proyecto.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String actualizarEstadoProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    String nuevoEstado = JOptionPane.showInputDialog("Nuevo estado (INICIADO, EN CURSO, CANCELADO, FINALIZADO, SUSPENDIDO, APLAZADO):").toUpperCase();
+                    datos.get(i).setEstado(nuevoEstado);
+                    return "Estado actualizado.";
+                }
+            }
+            return "No se encontró el proyecto.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String eliminarIntegranteProyectoDadoCodigo(ArrayList<Proyecto> datos, String codigoProyecto) {
+        if (!datos.isEmpty()) {
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getCodigo().equalsIgnoreCase(codigoProyecto)) {
+                    String id = JOptionPane.showInputDialog("Número de identificación del integrante a eliminar:");
+                    Empleado eliminado = datos.get(i).eliminarIntegrante(id);
+                    if (eliminado != null) {
+                        return "Se eliminó a: " + eliminado.getNombreCompleto();
+                    }
+                    return "No se encontró ese integrante en el equipo.";
+                }
+            }
+            return "No se encontró el proyecto.";
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarProyectosDadoNumIDEGerente(ArrayList<Proyecto> datos, String numIDEGerente) {
+        if (!datos.isEmpty()) {
+            String resultado = "=== PROYECTOS DEL GERENTE ===\n\n";
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getSuGerente().getNumeroIdentificacion().equalsIgnoreCase(numIDEGerente)) {
+                    resultado += mostrarProyecto(datos.get(i));
+                }
+            }
+            return resultado;
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarProyectosDadoNumIDECliente(ArrayList<Proyecto> datos, String numIDECliente) {
+        if (!datos.isEmpty()) {
+            String resultado = "=== PROYECTOS DEL CLIENTE ===\n\n";
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getSuCliente().getNumeroIdentificacion().equalsIgnoreCase(numIDECliente)) {
+                    resultado += mostrarProyecto(datos.get(i));
+                }
+            }
+            return resultado;
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public String consultarProyectosDadoTipoCliente(ArrayList<Proyecto> datos, String tipoCliente) {
+        if (!datos.isEmpty()) {
+            String resultado = "=== PROYECTOS POR TIPO DE CLIENTE ===\n\n";
+            for (int i = 0; i < datos.size(); i++) {
+                if (datos.get(i).getSuCliente().getClass().getSimpleName().equalsIgnoreCase(tipoCliente)) {
+                    resultado += mostrarProyecto(datos.get(i));
+                }
+            }
+            return resultado;
+        }
+        return "La lista de proyectos está vacía.";
+    }
+
+    public void generarArchivoDeObjetosProyectos(ArrayList<Proyecto> datos) {
+        if (!datos.isEmpty()) {
+            try {
+                ObjectOutputStream archivo = new ObjectOutputStream(new FileOutputStream("datosProyectos"));
+                for (int i = 0; i < datos.size(); i++) {
+                    archivo.writeObject(datos.get(i));
+                }
+                archivo.close();
+                JOptionPane.showMessageDialog(null, "Archivo 'datosProyectos' guardado.");
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error al guardar archivo: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "No hay proyectos para guardar.");
+        }
+    }
+
+    public ArrayList<Proyecto> leerArchivoDeObjetosProyectos() {
+        ArrayList<Proyecto> datos = new ArrayList<>();
+        try {
+            ObjectInputStream archivo = new ObjectInputStream(new FileInputStream("datosProyectos"));
+            try {
+                while (true) {
+                    datos.add((Proyecto) archivo.readObject());
+                }
+            } catch (EOFException e) {
+                archivo.close();
+            }
+            JOptionPane.showMessageDialog(null, "Proyectos cargados correctamente.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al leer archivo: " + e.getMessage());
+        }
+        return datos;
+    }
+
+    public void generarArchivoDeObjetosClientes(ArrayList<Proyecto> datos) {
+        if (!datos.isEmpty()) {
+            try {
+                ObjectOutputStream archivo = new ObjectOutputStream(new FileOutputStream("datosClientes"));
+                for (int i = 0; i < datos.size(); i++) {
+                    archivo.writeObject(datos.get(i).getSuCliente());
+                }
+                archivo.close();
+                JOptionPane.showMessageDialog(null, "Archivo 'datosClientes' guardado.");
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error al guardar archivo: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "No hay clientes para guardar.");
+        }
+    }
+
+    public ArrayList<Cliente> leerArchivoDeObjetosClientes() {
+        ArrayList<Cliente> datos = new ArrayList<>();
+        try {
+            ObjectInputStream archivo = new ObjectInputStream(new FileInputStream("datosClientes"));
+            try {
+                while (true) {
+                    Cliente c = (Cliente) archivo.readObject();
+                    boolean repetido = false;
+                    for (int i = 0; i < datos.size(); i++) {
+                        if (datos.get(i).getNumeroIdentificacion().equalsIgnoreCase(c.getNumeroIdentificacion())) {
+                            repetido = true;
+                        }
+                    }
+                    if (!repetido) {
+                        datos.add(c);
+                    }
+                }
+            } catch (EOFException e) {
+                archivo.close();
+            }
+            JOptionPane.showMessageDialog(null, "Clientes cargados correctamente.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al leer archivo: " + e.getMessage());
+        }
+        return datos;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
